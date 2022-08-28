@@ -1,0 +1,4 @@
+auth:
+  local:
+    enableRegistration: true
+    passwordRegex: ^.{8,64}$

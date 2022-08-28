@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title><% block title %>Let's Chat<% endblock %></title>
+        <meta name="description" content="" />
+        <link rel="icon" type="image/png" href="./media/favicon.ico" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0" />
+        <% block css %><% endblock %>
+        <$ 'vendor' | css | safe $>
+        <$ 'style' | css | safe $>
+        <$ 'vendor' | js | safe $>
+        <% block js %><% endblock %>
+    </head>
+    <body class="<% block class %><% endblock %>" <% block attributes %><% endblock %>>
+        <% block body %><% endblock %>
+        <% block templates %><% endblock %>
+        <% extends 'base.html' %>
+
+        <% block css %><% endblock %>
+        
+        <% block js %>
+        <$ 'chat' | js | safe $>
+        <% endblock %>
+        
+        <% block templates %>
+            <% include 'includes/js/room.html' %>
+            <% include 'includes/js/user.html' %>
+            <% include 'includes/js/file.html' %>
+            <% include 'includes/js/message.html' %>
+            <% include 'includes/js/tab.html' %>
+            <% include 'includes/js/browser-item.html' %>
+            <% include 'includes/js/browser-item-user.html' %>
+            <% include 'includes/js/upload.html' %>
+        <% endblock %>
+        
+        <% block body %>
+            <div id="lcb-client" class="lcb-client">
+                <div class="lcb-header">
+                    <button type="button" class="btn lcb-header-toggle">
+                        <i class="fa fa-bars" aria-label="<$ __('Toggle Navigation') $>"></i>
+                    </button>
+                    <div class="lcb-header-logo">Let's Chat</div>
+                </div>
+                <section class="lcb-sidebar">
+                    <div class="dropdown">
+                        <a class="lcb-account-button dropdown-toggle" data-toggle="dropdown" href="3">
+                            <img class="lcb-account-button-avatar lcb-avatar" src="https://www.gravatar.com/avatar/<$ account.avatar $>?s=50" />
+                            <span class="lcb-account-button-name"><$ account.displayName $></span>
+                            <span class="lcb-account-button-username">@<$ account.username $></span>
+                            <i class="lcb-account-button-chevron fa fa-chevron-down"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-right">
+                            <li>
+                                <a data-toggle="modal" href="#lcb-profile">
+                                    <i class="fa fa-fw fa-edit"></i> <$ __('Edit Profile') $>
+                                </a>
+                            </li>
+                            <li>
+                                <a data-toggle="modal" href="#lcb-account">
+                                    <i class="fa fa-fw fa-cogs"></i> <$ __('Account Settings') $>
+                                </a>
+                            </li>
+                            <li>
+                                <a data-toggle="modal" href="#lcb-notifications">
+                                    <i class="fa fa-fw fa-bell"></i> <$ __('Notifications') $>
+                                </a>
+                            </li>
+                            <% if settings.xmpp.enable %>
+                                <li>
+                                    <a data-toggle="modal" href="#lcb-xmpp">
+                                        <i class="fa fa-fw fa-comments"></i> <$ __('XMPP/Jabber') $>
+                                    </a>
+                                </li>
+                            <% endif %>
+                            <li>
+                                <a data-toggle="modal" href="#lcb-tokens">
+                                    <i class="fa fa-fw fa-lock"></i> <$ __('Auth Tokens') $>
+                                </a>
+                            </li>
+                            <li class="divider"></li>
+                            <li><a href="./logout"><i class="fa fa-fw fa-sign-out"></i> <$ __('Logout') $></a></li>
+                        </ul>
+                    </div>
+                    <div class="lcb-status-indicators">
+                        <span class="lcb-status-indicator lcb-status-indicator-error lcb-status-connection" data-status="disconnected" style="display: none;">
+                            <i class="fa fa-plug"></i> <$ __('Disconnected') $>
+                        </span>
+                        <span class="lcb-status-indicator lcb-status-connection" data-status="connected" style="display: none;">
+                            <i class="fa fa-refresh"></i> <$ __('Connected') $>
+                        </span>
+                        <span class="lcb-status-indicator lcb-status-connection" style="display: none;">
+                            <i class="fa fa-bell-slash"></i>
+                        </span>
+                    </div>
+                    <div class="lcb-version">
+                        v <$ version $>
+                    </div>
+                    <div class="lcb-tabs-outer">
+                        <ul class="lcb-tabs">
+                            <li data-id="list" class="lcb-tab lcb-tab-home">
+                                <a href="#!/">
+                                    <i class="fa fa-th" aria-label="<$ __('Home') $>"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+                <section class="lcb-panes">
+                    <div class="lcb-rooms-browser lcb-pane hide" data-id="list">
+                        <header class="lcb-room-header">
+                            <div class="lcb-room-meta">
+                                <h2 class="lcb-room-heading lcb-room-heading-loud"><$ __('All Rooms') $></h2>
+                            </div>
+                            <div class="lcb-rooms-browser-filter">
+                                <label class="lcb-rooms-browser-filter-label" for="lcb-rooms-browser-filter-input">
+                                    <i class="fa fa-search" aria-label="<$ __('Search') $>"></i>
+                                </label>
+                                <input id="lcb-rooms-browser-filter-input" class="lcb-rooms-browser-filter-input" type="search" autofocus placeholder="<$ __('Find a room...') $>" />
+                            </div>
+                            <div class="lcb-room-header-actions">
+                                <a class="btn btn-success lcb-rooms-browser-new" data-toggle="modal" data-target="#lcb-add-room" href="#!/rooms/add">
+                                    <i class="fa fa-plus" aria-label="<$ __('Add Room') $>"></i>
+                                </a>
+                            </div>
+                        </header>
+                        <header class="lcb-rooms-browser-header hide">
+                            <h2 class="lcb-rooms-browser-heading">
+                                <$ __('All Rooms') $>
+                            </h2>
+        
+                            
+                        </header>
+                        <ul class="lcb-rooms-list"></ul>
+                        <% include 'includes/modals/add-room.html' %>
+                        <% include 'includes/modals/password.html' %>
+                    </div>
+                </section>
+                <div class="lcb-loading lcb-client-loading">
+                    <img class="lcb-loading-indicator" src="./media/img/loading.svg" alt="<$ __('Loading') $>..." />
+                </div>
+                <% include 'includes/modals/notifications.html' %>
+                <% include 'includes/modals/profile.html' %>
+                <% include 'includes/modals/account.html' %>
+                <% include 'includes/modals/xmpp.html' %>
+                <% include 'includes/modals/tokens.html' %>
+                <% include 'includes/modals/upload.html' %>
+                <% include 'includes/modals/giphy.html' %>
+            </div><!-- lcb-client end -->
+        <% endblock %>
+        <% extends 'base.html' %>
+
+        <% block title %>Login &middot; Let's Chat<% endblock %>
+        
+        <% block class %>lcb-login animated fadeIn<% endblock %>
+        
+        <% block attributes %>
+            style="background-image: url('./media/img/photos/<$ photo $>');"
+        <% endblock %>
+        
+        <% block js %>
+        <$ 'login' | js | safe $>
+        <% endblock %>
+        
+        <% block body %>
+            <section class="lcb-login-main">
+                <h1 class="lcb-login-logo">Let<span class="flavour">'</span>s Chat</h1>
+                <div class="lcb-login-boxes">
+                    <form class="lcb-login-box lcb-login-box-login validate" action="./account/login" method="post" data-refresh="true">
+                        <h2 class="lcb-login-box-heading"><$ __('Sign in') $></h2>
+                        <img class="lcb-login-avatar" style="display: none;" />
+                        <div class="form-group">
+                            <input class="required form-control" placeholder="<$ __('Username or Email') $>" name="username" type="text" autofocus />
+                        </div>
+                        <div class="form-group">
+                            <input class="required form-control" placeholder="<$ __('Password') $>" name="password" type="password" autocomplete="off" />
+                        </div>
+                        <div class="lcb-login-box-bottom">
+                            <% if auth.local.enableRegistration %>
+                                <div class="links pull-left">
+                                    <a href="#" class="lcb-show-box" data-target=".lcb-login-box-registration">
+                                        <$ __('I need an account') $>
+                                    </a>
+                                </div>
+                            <% endif %>
+                            <button class="btn-info btn btn-lg pull-right" type="submit">
+                                <$ __('Sign in') $>
+                                <i class="fa fa-sign-in"></i>
+                            </button>
+                        </div>
+                    </form>
+                    <% if auth.local.enableRegistration %>
+                        <form class="lcb-login-box lcb-login-box-registration validate" action="./account/register" method="post" style="display: none;">
+                            <h2 class="lcb-login-box-heading"><$ __('Register') $></h2>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon">@</span>
+                                    <input type="text" name="username"
+                                        class="required form-control"
+                                        placeholder="<$ __('Username') $>" maxlength="48" >
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <input class="required email form-control" name="email" type="text" placeholder="<$ __('Email') $>" />
+                            </div>
+                            <div class="form-group">
+                                <input class="required form-control" name="display-name" type="text" placeholder="<$ __('Display Name') $>" maxlength="48" />
+                            </div>
+                            <div class="row">
+                                <div class="form-group col-sm-9">
+                                    <input class="required form-control" name="first-name" type="text" placeholder="<$ __('First Name') $>" maxlength="48" />
+                                </div>
+                                <div class="form-group col-sm-9">
+                                    <input class="required form-control" name="last-name" type="text" placeholder="<$ __('Last Name') $>" maxlength="48" />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group col-sm-9">
+                                    <input class="required form-control" name="password" type="password"
+                                        placeholder="<$ __('Password') $>" minlength="8" maxlength="64" autocomplete="off" />
+                                </div>
+                                <div class="form-group col-sm-9">
+                                    <input class="required form-control" name="password-confirm" type="password"
+                                        placeholder="<$ __('Confirm Password') $>" minlength="8" maxlength="64" autocomplete="off" />
+                                </div>
+                            </div>
+                            <div class="lcb-login-box-bottom">
+                                <div class="links pull-left">
+                                    <a href="#" class="lcb-show-box" data-target=".lcb-login-box-login">
+                                        <$ __('I already have an account') $>
+                                    </a>
+                                </div>
+                                <button class="btn-info btn btn-lg pull-right" type="submit">
+                                    <$ __('Register') $>
+                                </button>
+                            </div>
+                        </form>
+                    <% endif %>
+                    <footer class="lcb-login-footer">
+                        <p class="lcb-login-footer-heart">
+                            <i class="fa fa-heart"></i> <$ __('From Toronto with Love') $> <span class="dash">&mdash;</span>
+                            <$ __('Photos by %s and Friends', '<a href="http://funkaoshi.com/" target="_blank">Ramanan Sivaranjan</a>') | safe $>
+                        </p>
+                        <p class="lcb-login-footer-github"><a href="https://github.com/sdelements/lets-chat" target="_blank">
+                            <i class="fa fa-github"></i> <$ __('Fork me on GitHub') $> &raquo;</a>
+                        </p>
+                    </footer>
+                </div>
+            </section>
+        <% endblock %>
+        <% extends 'base.html' %>
+
+        <% block title %>Login &middot; Let's Chat<% endblock %>
+        
+        <% block class %>lcb-login animated fadeIn<% endblock %>
+        
+        <% block attributes %>
+            style="background-image: url('./media/img/photos/<$ photo $>');"
+        <% endblock %>
+        
+        <% block js %>
+        <$ 'login' | js | safe $>
+        <% endblock %>
+        
+        <% block body %>
+            <section class="lcb-login-main">
+                <h1 class="lcb-login-logo">Let<span class="flavour">'</span>s Chat</h1>
+                <div class="lcb-login-boxes">
+                    <form class="lcb-login-box lcb-login-box-login validate" action="./account/login" method="post" data-refresh="true">
+                        <h2 class="lcb-login-box-heading"><$ __('Sign in') $></h2>
+                        <img class="lcb-login-avatar" style="display: none;" />
+                        <div class="form-group">
+                            <input class="required form-control" placeholder="<$ __('Username or Email') $>" name="username" type="text" autofocus />
+                        </div>
+                        <div class="form-group">
+                            <input class="required form-control" placeholder="<$ __('Password') $>" name="password" type="password" autocomplete="off" />
+                        </div>
+                        <div class="lcb-login-box-bottom">
+                            <% if auth.local.enableRegistration %>
+                                <div class="links pull-left">
+                                    <a href="#" class="lcb-show-box" data-target=".lcb-login-box-registration">
+                                        <$ __('I need an account') $>
+                                    </a>
+                                </div>
+                            <% endif %>
+                            <button class="btn-info btn btn-lg pull-right" type="submit">
+                                <$ __('Sign in') $>
+                                <i class="fa fa-sign-in"></i>
+                            </button>
+                        </div>
+                    </form>
+                    <% if auth.local.enableRegistration %>
+                        <form class="lcb-login-box lcb-login-box-registration validate" action="./account/register" method="post" style="display: none;">
+                            <h2 class="lcb-login-box-heading"><$ __('Register') $></h2>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon">@</span>
+                                    <input type="text" name="username"
+                                        class="required form-control"
+                                        placeholder="<$ __('Username') $>" maxlength="48" >
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <input class="required email form-control" name="email" type="text" placeholder="<$ __('Email') $>" />
+                            </div>
+                            <div class="form-group">
+                                <input class="required form-control" name="display-name" type="text" placeholder="<$ __('Display Name') $>" maxlength="48" />
+                            </div>
+                            <div class="row">
+                                <div class="form-group col-sm-9">
+                                    <input class="required form-control" name="first-name" type="text" placeholder="<$ __('First Name') $>" maxlength="48" />
+                                </div>
+                                <div class="form-group col-sm-9">
+                                    <input class="required form-control" name="last-name" type="text" placeholder="<$ __('Last Name') $>" maxlength="48" />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group col-sm-9">
+                                    <input class="required form-control" name="password" type="password"
+                                        placeholder="<$ __('Password') $>" minlength="8" maxlength="64" autocomplete="off" />
+                                </div>
+                                <div class="form-group col-sm-9">
+                                    <input class="required form-control" name="password-confirm" type="password"
+                                        placeholder="<$ __('Confirm Password') $>" minlength="8" maxlength="64" autocomplete="off" />
+                                </div>
+                            </div>
+                            <div class="lcb-login-box-bottom">
+                                <div class="links pull-left">
+                                    <a href="#" class="lcb-show-box" data-target=".lcb-login-box-login">
+                                        <$ __('I already have an account') $>
+                                    </a>
+                                </div>
+                                <button class="btn-info btn btn-lg pull-right" type="submit">
+                                    <$ __('Register') $>
+                                </button>
+                            </div>
+                        </form>
+                    <% endif %>
+                    <footer class="lcb-login-footer">
+                        <p class="lcb-login-footer-heart">
+                            <i class="fa fa-heart"></i> <$ __('From Toronto with Love') $> <span class="dash">&mdash;</span>
+                            <$ __('Photos by %s and Friends', '<a href="http://funkaoshi.com/" target="_blank">Ramanan Sivaranjan</a>') | safe $>
+                        </p>
+                        <p class="lcb-login-footer-github"><a href="https://github.com/sdelements/lets-chat" target="_blank">
+                            <i class="fa fa-github"></i> <$ __('Fork me on GitHub') $> &raquo;</a>
+                        </p>
+                    </footer>
+                </div>
+            </section>
+        <% endblock %>
+        <script type="text/x-handlebars-template" id="template-room-browser-item-user">
+            <li class="lcb-rooms-list-user" data-id="{{id}}" title="{{displayName}}">
+                <img class="lcb-rooms-list-user-avatar" src="https://www.gravatar.com/avatar/{{avatar}}?s=50" alt="{{displayName}}" />
+            </li>
+        </script>
+        <script type="text/x-handlebars-template" id="template-room-browser-item">
+            <li class="lcb-rooms-list-item" data-id="{{id}}">
+                <div class="lcb-rooms-list-item-top">
+                    {{#if hasPassword}}
+                        <span class="lcb-rooms-list-item-password fa fa-lock"></span>
+                        <a class="lcb-rooms-list-item-name" href="#!/room/{{id}}">{{name}}</a>
+                    {{else}}
+                        <a class="lcb-rooms-list-item-name" href="#!/room/{{id}}">{{name}}</a>
+                    {{/if}}
+                    <span class="lcb-rooms-list-item-slug">#{{slug}}</span>
+                </div>
+                <div class="lcb-rooms-list-item-description">{{description}}</div>
+                <ul class="lcb-rooms-list-users"></ul>
+                <div class="lcb-rooms-list-item-switch onoffswitch">
+                    <input type="checkbox" class="switch lcb-rooms-switch" id="room-switch-{{id}}" data-id="{{id}}" />
+                    <label class="switch lcb-rooms-switch-label" for="room-switch-{{id}}"></label>
+                </div>
+                <div class="lcb-rooms-list-item-last-active">
+                    <i class="fa fa-clock-o"></i> <span class="value">{{lastActive}}</span>
+                </div>
+            </li>
+        </script>
+        <script type="text/x-handlebars-template" id="template-file">
+            <li class="lcb-room-sidebar-item lcb-room-sidebar-file" data-id="{{id}}">
+                <i class="fa fa-file lcb-room-sidebar-file-icon"></i>
+                <div class="lcb-room-sidebar-file-meta">
+                    <a class="lcb-room-sidebar-file-name" href="{{url}}" target="_blank">{{name}}</a>
+                    <span class="lcb-room-sidebar-file-owner">{{owner.displayName}}</span>
+                    &middot;
+                    <span class="lcb-room-sidebar-file-size">{{size}}</span>
+                </div>
+            </li>
+        </script>
+        <script type="text/x-handlebars-template" id="template-message">
+            <li class="lcb-message {{#if mentioned}}lcb-message-mentioned{{/if}} {{#if fragment}}lcb-message-fragment{{/if}} {{#if own}}lcb-message-own{{/if}} {{#if fragment}}lcb-message-paste{{/if}}" data-owner="{{owner.id}}">
+                {{#unless fragment}}
+                    <img class="lcb-message-avatar lcb-avatar lcb-room-poke" src="https://www.gravatar.com/avatar/{{owner.avatar}}?s=30" />
+                {{/unless}}
+                <div class="lcb-message-meta">
+                    {{#unless fragment}}
+                        <span class="lcb-message-name">
+                            <span class="lcb-room-poke">
+                                <span class="lcb-message-displayname">
+                                    {{owner.displayName}}
+                                </span>
+                                <span class="lcb-message-username">
+                                    @{{owner.username}}
+                                </span>
+                            </span>
+                        </span>
+                        <time class="lcb-message-time" title="{{posted}}"></time>
+                    {{/unless}}
+                    <div class="lcb-message-text">
+                        {{#unless paste}}
+                            {{text}}
+                        {{else}}
+                            <pre>{{text}}</pre>
+                        {{/unless}}
+                    </div>
+                </div>
+            </li>
+        </script>
+        <script type="text/x-handlebars-template" id="template-room">
+            <div class="lcb-room lcb-pane lcb-pane-{{id}} {{#if sidebar}}lcb-room-sidebar-opened{{/if}} hide" data-id="{{id}}">
+                <header class="lcb-room-header">
+                    <div class="lcb-room-meta">
+                        <div class="lcb-room-meta-text">
+                            <h2 class="lcb-room-heading">
+                                <span class="slug">#{{slug}}</span>
+                                {{#if hasPassword}}
+                                    <span class="fa fa-lock btn password" title="<$ __('This room requires password to enter') $>" aria-label="<$ __('This room requires password to enter') $>"></span>
+                                {{/if}}
+                            </h2>
+                            <p class="lcb-room-description">{{description}}</p>
+                        </div>
+                    </div>
+                    <div class="lcb-room-header-actions">
+                        <div class="btn-group">
+                            {{#if iCanEdit}}
+                                <a class="btn btn-action hidden-xs show-edit-room"
+                                    title="<$ __('Edit Room') $>" aria-label="<$ __('Edit Room') $>">
+                                    <i class="fa fa-edit"></i>
+                                </a>
+                            {{/if}}
+                            <a class="btn btn-action hidden-xs" title="<$ __('Chat History') $>" aria-label="<$ __('Chat History') $>"
+                                href="./transcript?room={{ id }}" target="_blank">
+                                <i class="fa fa-history"></i>
+                            </a>
+                        </div>
+                        <div class="btn-group">
+                            <% if settings.files.enable %>
+                                <a class="btn btn-action hidden-xs lcb-upload-trigger" title="<$ __('Upload Files') $>" aria-label="<$ __('Upload Files') $>" href="#">
+                                    <i class="fa fa-upload"></i>
+                                </a>
+                            <% endif %>
+                            <% if settings.giphy.enable %>
+                                <a class="btn btn-action hidden-xs lcb-giphy" href="#lcb-giphy" title="<$ __('Giphy') $>" aria-label="<$ __('Giphy') $>" data-toggle="modal">
+                                    <i class="fa fa-gift"></i>
+                                </a>
+                            <% endif %>
+                        </div>
+                        <a class="btn btn-action lcb-room-toggle-sidebar" href="#">
+                            <i class="fa fa-chevron-left" aria-label="<$ __('Toggle Sidebar') $>"></i>
+                        </a>
+                    </div>
+                </header><!-- lcb-room-header end -->
+                <div class="lcb-room-main">
+                    <div class="lcb-room-chat">
+                        <ul class="lcb-messages" aria-live="polite"></ul>
+                        <form class="lcb-entry">
+                            <textarea class="lcb-entry-input" placeholder="<$ __('Got something to say?') $>" autofocus></textarea>
+                            <button type="submit" class="lcb-entry-button" aria-label="<$ __('Send') $>">
+                                <i class="fa fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div><!-- lcb-chat end -->
+                    <div class="lcb-room-sidebar">
+                        <div class="lcb-room-sidebar-group lcb-room-sidebar-users">
+                            <header class="lcb-room-sidebar-header">
+                                <h3 class="lcb-room-sidebar-heading">
+                                    <i class="fa fa-users"></i> <$ __('Who\'s Here') $> (<span class="lcb-room-sidebar-items-count"></span>)
+                                </h3>
+                            </header>
+                            <ul class="lcb-room-sidebar-list"></ul>
+                        </div>
+                        <% if settings.files.enable %>
+                            <div class="lcb-room-sidebar-group lcb-room-sidebar-files">
+                                <header class="lcb-room-sidebar-header">
+                                    <h3 class="lcb-room-sidebar-heading">
+                                        <i class="fa fa-file-text"></i> <$ __('Files') $>
+                                    </h3>
+                                    <button class="btn lcb-room-sidebar-files-add lcb-upload-trigger">
+                                        <i class="fa fa-plus" aria-label="<$ __('Upload Files') $>"></i>
+                                    </button>
+                                </header>
+                                <ul class="lcb-room-sidebar-list"></ul>
+                            </div>
+                        <% endif %>
+                    </div><!-- lcb-room-sidebar end -->
+                </div>
+                <div class="edit-room modal fade lcb-room-edit">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form action="" class="validate form-horizontal" method="post">
+                            <div class="modal-header">
+                                <button class="close hide-edit-room" type="button">&times;</button>
+                                <h4 class="modal-title"><$ __('Edit Room') $></h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label class="control-label col-sm-6"><$ __('Name') $></label>
+                                    <div class="col-sm-11">
+                                        <input class="required name form-control" name=
+                                        "name" type="text" value="{{name}}">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class=
+                                    "control-label col-sm-6"><$ __('Description') $></label>
+                                    <div class="col-sm-11">
+                                        <textarea class="form-control" name=
+                                        "description" rows="5">{{description}}</textarea>
+                                    </div>
+                                </div>
+                                {{#if private}}
+                                    <div class="form-group">
+                                        <label class=
+                                        "control-label col-sm-6"><$ __('Password') $></label>
+                                        <div class="col-sm-11">
+                                            <input class="form-control" name=
+                                            "password" type="password" value="{{password}}">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class=
+                                        "control-label col-sm-6"><$ __('Confirm Password') $></label>
+                                        <div class="col-sm-11">
+                                            <input class="form-control" name=
+                                            "confirmPassword" type="password" value="{{password}}">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class=
+                                        "control-label col-sm-6"><$ __('Participants') $></label>
+                                        <div class="col-sm-11">
+                                            <textarea class="form-control lcb-entry-participants" name=
+                                            "participants">{{participants}}</textarea>
+                                        </div>
+                                    </div>
+                                {{/if}}
+                                <p class="response" style="display: none;"></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-info pull-right submit-edit-room" type=
+                                "submit">
+                                    <i class="icon-ok"></i> <$ __('Save') $>
+                                </button>
+                                <a class="archive-room btn btn-danger pull-left"
+                                tabindex="-1">
+                                    <i class="icon-remove icon-white"></i>
+                                    <$ __('Archive Room') $>
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                </div><!-- edit room end -->
+            </div><!-- lcb-room end -->
+        </script>
+        <script type="text/x-handlebars-template" id="template-room-tab">
+            <li class="lcb-tab lcb-tab-room" data-id="{{id}}">
+                <a href="#!/room/{{id}}">
+                    <span class="lcb-tab-title">{{name}}</span>
+                    <span class="lcb-tab-alerts">
+                        <span class="lcb-tab-alerts-mentions"></span>
+                        <span class="lcb-tab-alerts-total"></span>
+                    </span>
+                    <span class="lcb-tab-close">&times;</span>
+                </a>
+            </li>
+        </script>
+        <script type="text/x-handlebars-template" id="template-upload">
+    <div class="lcb-upload-item">
+        <div id="template" class="lcb-upload-item-box">
+            <div class="lcb-upload-item-preview">
+                <img data-dz-thumbnail />
+                <span class="lcb-upload-item-size" data-dz-size></span>
+            </div>
+            <div class="progress lcb-upload-item-progress">
+                <div class="progress-bar lcb-upload-item-progress-bar" role="progressbar" style="width: 0%;" data-dz-uploadprogress></div>
+            </div>
+            <div class="lcb-upload-item-meta">
+                <span class="lcb-upload-item-name" data-dz-name></span>
+                <span class="cb-upload-item-error error text-danger" data-dz-errormessage></span>
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/x-handlebars-template" id="template-user">
+    <li class="lcb-room-sidebar-item lcb-room-sidebar-user" data-id="{{id}}">
+        <img class="lcb-avatar lcb-room-sidebar-user-avatar lcb-room-poke" src="https://www.gravatar.com/avatar/{{avatar}}?s=30" />
+        <div class="lcb-room-sidebar-user-meta lcb-room-poke">
+            <span class="lcb-room-sidebar-user-name">
+                {{displayName}}
+            </span>
+            <span class="lcb-room-sidebar-user-username">
+                @{{username}}
+            </span>
+        </div>
+    </li>
+</script>
+<div id="lcb-account" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="./account/settings" method="post"
+                class="validate form-horizontal">
+                <div class="modal-header">
+                    <button type="button" class="close"
+                        data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">
+                        <i class="icon-cogs"></i> <$ __('Account Settings') $>
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="control-label col-sm-6"><$ __('Username') $></label>
+                        <div class="col-sm-11">
+                            <div class="input-group">
+                                <span class="input-group-addon">@</span>
+                                <input type="text" name="username" required
+                                    class="lcb-room-slug form-control"
+                                    value="<$ account.username $>" >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-6"><$ __('Email') $></label>
+                        <div class="col-sm-11">
+                            <input type="text" name="email" required
+                                class="required email form-control"
+                                value="<$ account.email $>" />
+                        </div>
+                    </div>
+                    <% if account.local %>
+                        <div class="form-group">
+                            <label class="control-label col-sm-6">
+                                <$ __('New Password') $>
+                            </label>
+                            <div class="col-sm-11">
+                                <input type="password" name="new-password"
+                                    class="form-control"
+                                    minlength="4" maxlength="64" autocomplete="off"
+                                    data-clear="true" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-6">
+                                <$ __('Confirm New Password') $>
+                            </label>
+                            <div class="col-sm-11">
+                                <input type="password" name="confirm-password"
+                                class="form-control"
+                                minlength="4" maxlength="64" autocomplete="off"/>
+                            </div>
+                        </div>
+                    <% endif %>
+                    <div class="form-group">
+                        <label class="control-label col-sm-6">
+                            <$ __('Current Password') $> <small><$ __('Required') $></small>
+                        </label>
+                        <div class="col-sm-11">
+                            <input type="password" name="current-password"
+                            class="form-control"
+                            minlength="4" maxlength="64" required autocomplete="off"/>
+                        </div>
+                    </div>
+                    <p class="alert response" style="display: none;"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-info indicator" name="submit"><i class="icon-ok"></i> <$ __('Save') $></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div id="lcb-add-room" class="modal fade" data-backdrop=false>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form role="form" action="#!/rooms/add" class="lcb-rooms-add">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title"><$ __('Add Room') $></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="lcb-room-name"><$ __('Name') $></label>
+                        <input type="text" placeholder="<$ __('Name') $>"
+                            class="lcb-room-name form-control" >
+                    </div>
+
+                    <div class="form-group">
+                        <label><$ __('Slug') $></label>
+                        <div class="input-group">
+                            <span class="input-group-addon">#</span>
+                            <input type="text" placeholder="<$ __('Slug') $>"
+                                class="lcb-room-slug form-control" >
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><$ __('Description') $></label>
+                        <input type="text" placeholder="<$ __('Description') $>"
+                            class="lcb-room-description form-control">
+                    </div>
+                    <% if settings.rooms.private %>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" class="lcb-room-private" />
+                                <$ __('Private?') $>
+                            </label>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-sm-9">
+                                <label><$ __('Password') $></label>
+                                <input type="password"
+                                    placeholder="<$ __('Empty for public room') $>"
+                                    class="lcb-room-password form-control">
+                            </div>
+                            <div class="form-group col-sm-9">
+                                <label><$ __('Confirm Password') $></label>
+                                <input type="password"
+                                    class="lcb-room-confirm-password form-control">
+                            </div>
+                        </div>
+                    <% endif %>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal"><$ __('Cancel') $></button>
+                    <button type="submit" class="btn btn-primary"><$ __('Save') $></button>
+                </div>
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<% if settings.giphy.enable %>
+    <div id="lcb-giphy" class="lcb-giphy modal fade" data-rating="<$ settings.giphy.rating $>"  data-limit="<$ settings.giphy.limit $>"  data-apikey="<$ settings.giphy.apiKey $>">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form class="validate form-horizontal" action="./messages" method="POST">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title"><i class="icon-edit"></i> <$ __('Giphy') $></h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="control-label col-sm-6"><$ __('Search') $></label>
+                            <div class="col-sm-11">
+                                <input class="form-control search-giphy" name="search" />
+                                <p class="help-block">
+                                    Powered by <a href="http://giphy.com/" target="_blank">Giphy</a>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="giphy-results">
+                            <ul></ul>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+<% endif %>
+<div id="lcb-notifications" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title"><i class="fa fa-bell"></i> <$ __('Notifications') $></h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <button name="desktop-notifications" class="btn btn-info" style="text-align: left">
+                        <span class="enabled">
+                            <$ __('Desktop Notifications are') $>
+                            <strong><$ __('enabled') $></strong>
+                            <br /><small><$ __('Use your browser settings to disable them') $></small>
+                        </span>
+                        <span class="disabled"><$ __('Enable Desktop Notifications') $></span>
+                        <span class="blocked">
+                            <$ __('Desktop Notifications are') $>
+                            <strong><$ __('blocked') $></strong>
+                            <br /><small><$ __('Please check your browser settings') $></small>
+                        </span>
+                    </button>
+                </div>
+            </div>
+         </div>
+    </div>
+</div>
+<div id="lcb-password" class="modal fade" data-backdrop=false>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form role="form" class="lcb-password">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title"><$ __('Password required') $></h4>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        <$ __('Room %s requires a password.', '<strong><span class="lcb-room-password-name"></span></strong>') | safe $>
+                    </p>
+                    <div class="form-group">
+                        <label for="lcb-room-password"><$ __('Password') $></label>
+                        <input type="password"
+                            class="lcb-room-password-required form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal"><$ __('Cancel') $></button>
+                    <button type="submit" class="btn btn-primary"><$ __('Enter') $></button>
+                </div>
+            </form>
+        </div>modal-content  
+    </div>modal-dialog 
+</div> modal 
+<div id="lcb-profile" class="lcb-edit-profile modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form class="validate form-horizontal" action="./account/profile" method="POST">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title"><i class="icon-edit"></i> <$ __('Profile Settings') $></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="control-label col-sm-6"><$ __('Display Name') $></label>
+                        <div class="col-sm-11">
+                            <input class="form-control" name="display-name" type="text" value="<$ account.displayName $>" required data-model="displayName" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-6"><$ __('First Name') $></label>
+                        <div class="col-sm-11">
+                            <input class="form-control" name="first-name" type="text" value="<$ account.firstName $>" required data-model="firstName" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-6"><$ __('Last Name') $></label>
+                        <div class="col-sm-11">
+                            <input class="form-control" name="last-name" type="text" value="<$ account.lastname $>" required data-model="lastName" />
+                        </div>
+                    </div>
+                    <p class="alert response" style="display: none;"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="submit-edit-profile btn btn-info indicator" name="submit"><i class="icon-ok"></i> <$ __('Save') $></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div id="lcb-tokens" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title"><i class="fa fa-lock"></i> <$ __('Authentication tokens') $></h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <p><$ __('Auth tokens are used to access the Let\'s Chat API.') $></p>
+                    <button class="generate-token btn btn-info" style="text-align: left">
+                        <$ __('Generate token') $>
+                    </button>
+                    <button class="revoke-token btn btn-danger" style="text-align: left">
+                        <$ __('Revoke token') $>
+                    </button>
+                </div>
+                <div class="generated-token" style="display: none">
+                    <div class="alert alert-success" role="alert">
+                        <$ __('Your generated token is below. It will not be shown again.') $>
+                    </div>
+                    <textarea class="token form-control"></textarea>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<% if settings.files.enable %>
+<div id="lcb-upload" class="modal dropzone fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form class="validate form-horizontal" action="./files" method="post">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title"><i class="fa fa-upload"></i> <$ __('Upload') $></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col-sm-14 col-sm-offset-2">
+                            <button class="lcb-upload-target btn btn-primary btn-lg btn-block"><$ __('Select Files') $></button>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="control-label col-sm-6"><$ __('Room') $></label>
+                        <div class="col-sm-10">
+                            <select class="form-control input-lg" name="room"></select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="control-label col-sm-6"><$ __('Post in room?') $></label>
+                        <div class="col-sm-11">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" checked name="post" />
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-18">
+                            <div class="lcb-upload-preview-files"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        <$ __('Cancel') $>
+                    </button>
+                    <button type="submit" class="btn btn-info indicator" name="submit">
+                        <i class="icon-ok"></i> <$ __('Upload') $>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<% endif %>
+<div id="lcb-xmpp" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title"><i class="fa fa-comments"></i> <$ __('XMPP/Jabber Connection Details') $></h4>
+            </div>
+            <div class="modal-body">
+
+                <div class="row">
+                    <div class="col-sm-12">
+
+                        <h4><$ __('Connection Details') $></h4>
+
+                        <dl class="">
+                            <dt><$ __('Username') $></dt>
+                            <dd>
+                                <% if account.local %>
+                                    <$ account.username $>@<$ settings.xmpp.domain $>
+                                <% else %>
+                                    <$ account.uid $>@<$ settings.xmpp.domain $>
+                                <% endif %></dd>
+                            <% if settings.xmpp.port != 5222 %>
+                            <dt><$ __('Port') $></dt>
+                            <dd><$ settings.xmpp.port $></dd>
+                            <% endif %>
+                        </dl>
+
+                        <dl class="">
+                            <dt><$ __('Host') $></dt>
+                            <dd><$ settings.xmpp.domain $></dd>
+                            <% if settings.xmpp.port == 5222 %>
+                            <dt><$ __('Port') $></dt>
+                            <dd><$ settings.xmpp.port $></dd>
+                            <% endif %>
+                            <dt><$ __('Conference Host') $></dt>
+                            <dd><$ settings.xmpp.confdomain $></dd>
+                        </dl>
+
+                    </div>
+                    <div class="col-sm-6">
+
+                        <h4><$ __('Supported Clients') $></h4>
+
+                        <h6><$ __('Desktop') $></h6>
+
+                        <ul class="list-unstyled">
+                            <li><a href="https://adium.im/">Adium</a></li>
+                            <li><a href="https://www.pidgin.im/">Pidgin</a></li>
+                            <li><a href="http://profanity.im/">Profanity</a></li>
+                            <li><a href="http://psi-im.org/">Psi</a></li>
+                        </ul>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="white">
+    <circle transform="translate(8 0)" cx="0" cy="16" r="0"> 
+      <animate attributeName="r" values="0; 4; 0; 0" dur="1.2s" repeatCount="indefinite" begin="0"
+        keytimes="0;0.2;0.7;1" keySplines="0.2 0.2 0.4 0.8;0.2 0.6 0.4 0.8;0.2 0.6 0.4 0.8" calcMode="spline" />
+    </circle>
+    <circle transform="translate(16 0)" cx="0" cy="16" r="0"> 
+      <animate attributeName="r" values="0; 4; 0; 0" dur="1.2s" repeatCount="indefinite" begin="0.3"
+        keytimes="0;0.2;0.7;1" keySplines="0.2 0.2 0.4 0.8;0.2 0.6 0.4 0.8;0.2 0.6 0.4 0.8" calcMode="spline" />
+    </circle>
+    <circle transform="translate(24 0)" cx="0" cy="16" r="0"> 
+      <animate attributeName="r" values="0; 4; 0; 0" dur="1.2s" repeatCount="indefinite" begin="0.6"
+        keytimes="0;0.2;0.7;1" keySplines="0.2 0.2 0.4 0.8;0.2 0.6 0.4 0.8;0.2 0.6 0.4 0.8" calcMode="spline" />
+    </circle>
+  </svg>
+  
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+</html>
